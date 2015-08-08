@@ -1,0 +1,66 @@
+name: ${project.name}
+main: com.programmerdan.minecraft.chunkman.ChunkMan
+author: ProgrammerDan
+authors: []
+version: ${project.version}
+commands:
+   chunkman:
+      description: ChunkManager - mod to give admins better tools to manage chunks
+      usage: Command not found! Try /chunkman help
+   chunkman stats:
+      description: Scans the loaded chunks listing and attempts to determine a number of statistics, including utilization, staleness, etc.
+      usage: /chunkman stats
+      aliases: ss
+      permission: ChunkMan.passive
+   chunkman cleanup:
+      description: Attempts to force the unloading of chunks no longer in use: flag "gentle" will perform the cleanup slowly in an attempt to prevent lag; otherwise will be very aggressive and may cause lag
+      usage: /chunkman cleanup [gentle]
+      aliases: cu
+      permissions: ChunkMan.active
+   chunkman forceunload:
+      description: Forces unloading of a specific chunk, in an unsafe fashion. Useful if a chunk refuses to unload but clearly needs to.
+      usage: /chunkman forceunload <world> <chunk-x> <chunk-z>
+      aliases: fu
+      permissions: ChunkMan.active
+   chunkman list:
+      description: Lists all the loaded chunks for a world near a specific BLOCK location (ignoring Y), if any.
+      usage: /chunkman list <world> <block-x> <block-z>
+      aliases: l
+      permissions: ChunkMan.passive
+   chunkman listplayer:
+      description: Lists all the loaded chunks for a world near a specific Player, if online.
+      usage: /chunkman listplayer [<playername>|<playeruuid>]
+      aliases: lp
+      permissions: ChunkMan.passive
+   chunkman info:
+      description: Outputs some information about a specific chunk
+      usage: /chunkman info <world> <chunk-x> <chunk-z>
+      aliases: i
+      permissions: ChunkMan.passive
+   chunkman monitor:
+      description: Controls the active monitoring of chunk load and unload volumes including update frequency, level of detail, etc.
+      usage: /chunkman monitor [list|([set|get] <key> <value>)]
+      aliases: m
+      permissions: ChunkMan.active
+   chunkman progressive:
+      description: Controls more aggressive behind the scenes tracking and unloading of chunks as players move and leave the server. No promises.
+      usage: /chunkman progressive [on|off]
+      alises: p
+      permissions: ChunkMan.active
+   chunkman reload:
+      description: Reloads the base configuration of Chunk Manager.
+      usage: /chunkman reload
+      permissions: ChunkMan.active
+permissions:
+    ChunkMan.*:
+      description: Gives access to all chunkman commands
+      default: op
+      children:
+        ChunkMan.passive: true
+        ChunkMan.active: true
+    ChunkMan.passive:
+      description: Allows you to use any command that reads data without altering configs or performing actions 
+      default: op
+    ChunkMan.active:
+      description: Allows you to use any command that sets data, alters configs, or performs actions
+      default: op
