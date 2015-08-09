@@ -57,5 +57,6 @@ public class ChunkManager extends JavaPlugin {
 		logger = getLogger();
 		plugin = this;
 		commandHandler = new CommandHandler(this);
+		getServer().getPluginManager().registerEvents(new ChunkEvents(), this);
 	}
 }
