@@ -64,6 +64,11 @@ public class ChunkTracker {
 
 	private HashSet<Long> occupied;
 
+	Long enterEvents;
+	Long exitEvents;
+	Long unloadEvents;
+	Long loadEvents;
+
 	private Object lock;
 	
 	private ChunkTracker() {
@@ -203,9 +208,63 @@ public class ChunkTracker {
 	 */
 	public void markUnloaded(Chunk chunk) {
 		synchronized(lock) {
-			Long chunkId = chunkId(chunk);
-			map.remove(chunkId);
-			occupied.remove(chunkId);
+			doMarkUnloaded(c);
+		}
+	}
+
+	/**
+	 * "Unloads" an array of chunks by removing them from the mapping.
+	 *
+	 * @param chunk The array of Chunks to "unload". Should not be null, this is not checked.
+	 */
+	public void markUnloaded(Chunk[] chunk) {
+		synchronized(lock) {
+			for (Chunk c : chunk) {
+				doMarkUnloaded(c);
+			}
+		}
+	}
+
+	/**
+	 * Internal, unsynchronized method to mark a chunk unloaded. Call from synchronized contexts only.
+	 */
+	private void doMarkUnloaded(Chunk chunk) {
+		Long chunkId = chunkId(chunk);
+		map.remove(chunkId);
+		occupied.remove(chunkId);
+	}
+
+	/**
+	 * "Loads" a chunk by adding them to the mapping, but empty. Occupancy is unaltered.
+	 *
+	 * @param chunk The chunk to "load". Should not be null, this is not checked.
+	 */
+	public void markLoaded(Chunk chunk) {
+		synchronized(lock) {
+			doMarkLoaded(chunk);
+		}
+	}
+
+	/**
+	 * "Loads" an Array of chunks by adding them to the mapping, but empty. Occupancy is unaltered.
+	 *
+	 * @param chunk The array of chunks to "load". Should not be null, this is not checked.
+	 */
+	public void markLoaded(Chunk[] chunk) {
+		synchronized(lock) {
+			for (Chunk c : chunk) {
+				doMarkLoaded(chunk);
+			}
+		}
+	}
+
+	/**
+	 * Internal, unsynchronized method to mark a chunk loaded. Call from synchronized contexts only.
+	 */
+	private void doMarkLoaded(Chunk chunk) {
+		Long chunkId = chunkId(chunk);
+		if (!map.contains(chunkId)) {
+			map.put(chunkId, 0);
 		}
 	}
 
@@ -221,6 +280,30 @@ public class ChunkTracker {
 			return (k == null || k <= 0) ? false : true;
 		}
 	}
+
+	/**
+	 * For this world, return a count of the occupied chunks.
+	 * 
+	 * @return the count of occupied chunks as an integer.
+	 */
+	public int countOccupied() {
+		synchronized(lock) {
+			return occupied.size();
+		}
+	}
+
+	/**
+	 * For this world, return a count of the chunks that are being actively track but haven't been
+	 *   marked as unloaded.
+	 * 
+	 * @return the count of loaded chunks (active tracking) as an integer.
+	 */
+	public int countLoaded() {
+		synchronized(lock) {
+			return map.size();
+		}
+	}
+
 
 	/**
 	 * Utility method to return the chunk's "id" based on this formula:
