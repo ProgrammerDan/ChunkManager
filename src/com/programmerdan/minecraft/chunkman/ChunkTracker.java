@@ -64,6 +64,8 @@ public class ChunkTracker {
 
 	private HashSet<Long> occupied;
 
+	Long occupancyBeginEvents;
+	Long occupancyEndEvents;
 	Long enterEvents;
 	Long exitEvents;
 	Long unloadEvents;
@@ -76,6 +78,12 @@ public class ChunkTracker {
 		this.map = null;
 		this.occupied = null;
 		this.lock = null;
+		this.occupancyBeginEvents = null;
+		this.occupancyEndEvents = null;
+		this.enterEvents = null;
+		this.exitEvents = null;
+		this.unloadEvents = null;
+		this.loadEvents = null;
 	}
 
 	/**
@@ -87,6 +95,12 @@ public class ChunkTracker {
 		this.map = new HashMap<Long, Short>();
 		this.occupied = new HashSet<Long>();
 		this.lock = new Object();
+		this.occupancyBeginEvents = 0L;
+		this.occupancyEndEvents = 0L;
+		this.enterEvents = 0L;
+		this.exitEvents = 0L;
+		this.unloadEvents = 0L;
+		this.loadEvents = 0L;
 	}
 
 	/**
@@ -123,11 +137,13 @@ public class ChunkTracker {
 		Short members = map.get(chunkId);
 		if (members == null) {
 			members = 1;
+			occupancyBeginEvents++;
 		} else {
 			members++;
 		}
 		map.put(chunkId, members);
 		occupied.add(chunkId);
+		enterEvents++;
 	}
 
 	/**
@@ -171,7 +187,9 @@ public class ChunkTracker {
 		map.put(chunkId, members);
 		if (members <= 0) {
 			occupied.remove(chunkId);
+			occupancyEndEvents++;
 		}
+		exitEvents++;
 	}
 
 	/**
@@ -184,7 +202,10 @@ public class ChunkTracker {
 		synchronized(lock) {
 			Long chunkId = chunkId(chunk);
 			map.put(chunkId, members);
-			occupied.add(chunkId);
+			if (!occupied.contains(chunkId)) {
+				occupancyBeginEvents++;
+				occupied.add(chunkId);
+			}
 		}
 	}
 
@@ -197,7 +218,10 @@ public class ChunkTracker {
 		synchronized(lock) {
 			Long chunkId = chunkId(chunk);
 			map.put(chunkId, 0);
-			occupied.remove(chunkId);
+			if (occupied.contains(chunkId)) {
+				occupied.remove(chunkId);
+				occupancyEndsEvent--;
+			}
 		}
 	}
 
@@ -230,6 +254,9 @@ public class ChunkTracker {
 	 */
 	private void doMarkUnloaded(Chunk chunk) {
 		Long chunkId = chunkId(chunk);
+		if (map.containsKey(chunkId)) {
+			unloadEvents++;
+		}
 		map.remove(chunkId);
 		occupied.remove(chunkId);
 	}
@@ -265,6 +292,7 @@ public class ChunkTracker {
 		Long chunkId = chunkId(chunk);
 		if (!map.contains(chunkId)) {
 			map.put(chunkId, 0);
+			loadEvents++;
 		}
 	}
 
